@@ -27,5 +27,10 @@ class User(UserMixin, Model):
                 is_admin=admin
             )
             except IntegrityError:
-                raise ValueError("The value is incorrect")
+                raise ValueError("User already Exist")
             
+def initialize():
+    """Initialize databas. Create tables"""
+    DATABASE.connect()
+    DATABASE.create_tables([User], safe=True)
+    DATABASE.close()
