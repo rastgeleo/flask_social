@@ -1,6 +1,6 @@
-from flask_wtf import FlaskForm
+from flask_wtf import Form
 from wtforms import StringField, PasswordField
-from wtforms.validators import (DataRequired, Reqexp, ValidationError, Email, 
+from wtforms.validators import (DataRequired, Regexp, ValidationError, Email, 
                                 Length, EqualTo) 
 
 from models import User
@@ -20,8 +20,7 @@ class RegisterForm(Form):
             DataRequired(),
             Regexp(
                 r'^[a-zA-Z0-9_]+$',
-                messages=("Username should be one word, letters, "
-                          "numbers and underscore only")
+                message="Username should be one word, letters, numbers and underscore only"
             ),
             name_exists
         ])

@@ -4,7 +4,7 @@ from peewee import *
 from flask.ext.login import UserMixin
 from flask.ext.bcrypt import generate_password_hash, check_password_hash
 
-DATABASE = sqlitedatabase('social.db')
+DATABASE = SqliteDatabase('social.db')
 
 class User(UserMixin, Model):
     username = CharField(unique=True)
@@ -26,8 +26,8 @@ class User(UserMixin, Model):
                 password=generate_password_hash(password),
                 is_admin=admin
             )
-            except IntegrityError:
-                raise ValueError("User already Exist")
+        except IntegrityError:
+            raise ValueError("User already Exist")
             
 def initialize():
     """Initialize databas. Create tables"""
