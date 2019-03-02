@@ -1,7 +1,7 @@
 from flask import (Flask, g, render_template, flash, redirect, url_for)
-from flask.ext.bcrypt import check_password_hash
-from flask.ext.login import (LoginManager, login_user, logout_user,
-                             login_required)
+from flask_bcrypt import check_password_hash
+from flask_login import (LoginManager, login_user, logout_user,
+                         login_required)
 
 import forms
 import models
@@ -79,6 +79,7 @@ def index():
     return 'Hey'
 
 if __name__ == '__main__':
+
     #initialize database
     models.initialize()
     #create admin user
@@ -92,4 +93,3 @@ if __name__ == '__main__':
     except ValueError:
         pass
     app.run(debug=DEBUG, host=HOST, port=PORT)
-    

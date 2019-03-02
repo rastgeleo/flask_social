@@ -1,8 +1,8 @@
 import datetime
 
 from peewee import *
-from flask.ext.login import UserMixin
-from flask.ext.bcrypt import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+from flask_bcrypt import generate_password_hash, check_password_hash
 
 DATABASE = SqliteDatabase('social.db')
 
