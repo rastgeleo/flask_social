@@ -6,6 +6,7 @@ from flask_bcrypt import generate_password_hash, check_password_hash
 
 DATABASE = SqliteDatabase('social.db')
 
+
 class User(UserMixin, Model):
     username = CharField(unique=True)
     email = CharField(unique=True)
@@ -16,7 +17,15 @@ class User(UserMixin, Model):
     class Meta:
         database = DATABASE
         order_by = ('-joined_at',)
-        
+
+    def get_posts(self):
+        return Post.select().where(Post.user == self)
+
+    def get_stream(self):
+        return Post.select().where(
+            (Post.user == self)
+        )
+
     @classmethod
     def create_user(cls, username, email, password, admin=False):
         try:
@@ -28,7 +37,21 @@ class User(UserMixin, Model):
             )
         except IntegrityError:
             raise ValueError("User already Exist")
-            
+
+
+class Post(Model):
+    timestamp = DateTimeField(default=datetime.datetime.now)
+    user = ForeignKeyField(
+        rel_model=User,
+        related_name='posts'
+    )
+    content = TextField()
+
+    class Meta:
+        database = DATABASE
+        order_by = ('-timestamp',)
+
+
 def initialize():
     """Initialize databas. Create tables"""
     DATABASE.connect()
