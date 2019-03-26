@@ -1,7 +1,7 @@
 from flask import (Flask, g, render_template, flash, redirect, url_for)
 from flask_bcrypt import check_password_hash
 from flask_login import (LoginManager, login_user, logout_user,
-                         login_required)
+                         login_required, current_user)
 
 import forms
 import models
@@ -13,12 +13,13 @@ HOST = '0.0.0.0'
 app = Flask(__name__)
 app.secret_key = 'asdfioeriugn12,wdfiommiojf!euihreg'
 
-#login manager setting
+# login manager setting
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-#load user
+
+# load user
 @login_manager.user_loader
 def load_user(userid):
     try:
@@ -26,17 +27,21 @@ def load_user(userid):
     except models.DoesNotExist:
         return None
 
+
 @app.before_request
 def before_request():
     """Connect to the database before each request."""
     g.db = models.DATABASE
     g.db.connect()
+    g.user = current_user
+
 
 @app.after_request
 def after_request(response):
     """Close the database connection after each request."""
     g.db.close()
     return response
+
 
 @app.route('/login', methods=('GET','POST'))
 def login():
@@ -54,13 +59,15 @@ def login():
             flash("Your email or password doens't match!", "error")
     return render_template('login.html', form=form)
 
+
 @app.route('/logout')
-@login_required #decoration for only logged in user contents
+@login_required  # decoration for only logged in user contents
 def logout():
-    logout_user() #delete cookie
+    logout_user()  # delete cookie
     flash("You've been logged out! Come back soon,", "success")
     return redirect(url_for('index'))
-        
+
+
 @app.route('/register', methods=('GET','POST'))
 def register():
     form = forms.RegisterForm()
@@ -74,15 +81,45 @@ def register():
         return redirect(url_for('index'))
     return render_template('register.html', form=form)
 
+
+@app.route('/new_post', methods=('GET', 'POST'))
+@login_required
+def post():
+    form = forms.PostForm()
+    if form.validate_on_submit():
+        models.Post.create(user=g.user._get_current_object(),
+                           content=form.content.data.strip())
+        flash("Message posted! Thanks!", "success")
+        return redirect(url_for('index'))
+    return render_template('post.html', form=form)
+
+
 @app.route('/')
 def index():
-    return 'Hey'
+    stream = models.Post.select().limit(100)
+    return render_template('stream.html', stream=stream)
+
+
+@app.route('/stream')
+@app.route('/stream/<username>')
+def stream(username=None):
+    template = 'stream.html'
+    if username and username != current_user.username:
+        user = models.User.select().where(models.User.username**username).get()
+        stream = user.posts.limit(100)
+    else:
+        stream = current_user.get_stream().limit(100)
+        user = current_user
+    if username:
+        template = 'user_stream.html'
+    return render_template(template, stream=stream, user=user)
+
 
 if __name__ == '__main__':
 
-    #initialize database
+    # initialize database
     models.initialize()
-    #create admin user
+    # create admin user
     try:
         models.User.create_user(
             username='archie J',
